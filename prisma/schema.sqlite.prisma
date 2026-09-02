@@ -1,0 +1,82 @@
+// ============================================
+// قالب SQLite (للتطوير المحلي السريع بدون أي إعداد)
+// لتفعيله:  npm run db:use:sqlite
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         String   @default("USER")
+  createdAt    DateTime @default(now())
+  links        Link[]
+}
+
+model Link {
+  id          String    @id @default(cuid())
+  userId      String?
+  anonId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalUrl String
+  shortCode   String    @unique
+  customAlias String?   @unique
+  title       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  expiresAt   DateTime?
+  clickCount  Int       @default(0)
+  isActive    Boolean   @default(true)
+  clicks      Click[]
+  reports     Report[]
+
+  @@index([userId])
+  @@index([anonId])
+  @@index([createdAt])
+}
+
+model Click {
+  id         String   @id @default(cuid())
+  linkId     String
+  link       Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  userAgent  String?
+  deviceType String?
+  browser    String?
+  os         String?
+  referrer   String?
+  country    String?
+
+  @@index([linkId])
+  @@index([createdAt])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  linkId    String
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  reason    String
+  details   String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  @@index([status])
+}
+
+model AdminSetting {
+  key   String @id
+  value String
+}
+
+model ReservedAlias {
+  alias String @id
+}

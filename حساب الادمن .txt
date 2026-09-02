@@ -1,0 +1,2 @@
+ADMIN_EMAIL=mhmsar@gmail.com
+ADMIN_PASSWORD=pR2opswEJN5CU4ww
