@@ -14,7 +14,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     await assertCsrf(req);
 
     const { id } = await params;
-    const body = (await req.json()) as { isActive?: boolean };
+    const { adminLinkPatchSchema } = await import("@/lib/validation");
+    const body = adminLinkPatchSchema.parse(await req.json());
 
     const link = await prisma.link.findUnique({
       where: { id },

@@ -20,11 +20,16 @@ export async function api<T = unknown>(
     headers["x-csrf-token"] = getCsrfToken();
   }
 
-  const res = await fetch(path, {
-    ...options,
-    headers,
-    body: options.json !== undefined ? JSON.stringify(options.json) : options.body,
-  });
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      ...options,
+      headers,
+      body: options.json !== undefined ? JSON.stringify(options.json) : options.body,
+    });
+  } catch {
+    return { ok: false, error: "تعذر الاتصال بالخادم، تحقق من الإنترنت وحاول مجددًا" };
+  }
 
   let body: { ok: boolean; data?: T; error?: string } = { ok: false };
   try {

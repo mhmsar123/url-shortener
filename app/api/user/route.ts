@@ -10,6 +10,15 @@ export const dynamic = "force-dynamic";
 /** تغيير كلمة المرور أو البريد الإلكتروني. */
 export async function PATCH(req: Request) {
   try {
+    const { rateLimit, getClientIp } = await import("@/lib/rate-limit");
+    const { getRateLimitSettings } = await import("@/lib/settings");
+    const { jsonError } = await import("@/lib/api");
+    const ip = getClientIp(req);
+    const limits = await getRateLimitSettings();
+    const rl = rateLimit(`user-patch:${ip}`, limits.auth, limits.windowMs);
+    if (!rl.ok) {
+      return jsonError("محاولات كثيرة، حاول بعد قليل.", 429);
+    }
     const session = await getSession();
     const user = requireUser(session);
     await assertCsrf(req);

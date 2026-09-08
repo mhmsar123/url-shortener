@@ -13,7 +13,13 @@ export type SessionUser = {
 };
 
 function getSecret() {
-  const secret = process.env.AUTH_SECRET || "dev-only-secret-change-me";
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("AUTH_SECRET is missing. Set a long random value in production.");
+    }
+    return new TextEncoder().encode("dev-only-secret-change-me");
+  }
   return new TextEncoder().encode(secret);
 }
 

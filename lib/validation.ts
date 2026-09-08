@@ -121,3 +121,31 @@ export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "أدخل كلمة المرور الحالية").max(72),
   newPassword: z.string().min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل").max(72),
 });
+
+export const adminLinkPatchSchema = z.object({
+  isActive: z.boolean().optional(),
+});
+
+export const adminReportPatchSchema = z.object({
+  status: z.enum(["PENDING", "ACCEPTED", "REJECTED"]),
+});
+
+export const adminAliasSchema = z.object({
+  alias: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9-_]{3,32}$/, "الاسم يجب أن يكون 3-32 حرفًا"),
+});
+
+export const adminSettingsSchema = z.record(
+  z.enum([
+    "rate_limit_create",
+    "rate_limit_lookup",
+    "rate_limit_auth",
+    "rate_limit_report",
+    "rate_limit_global",
+    "window_seconds",
+  ]),
+  z.union([z.string(), z.number()])
+);

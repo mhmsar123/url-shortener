@@ -6,7 +6,12 @@ export default function LogoutButton() {
   const router = useRouter();
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    const m = document.cookie.match(/(?:^|;\s*)qs_csrf=([^;]+)/);
+    const csrf = m ? decodeURIComponent(m[1]) : "";
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: csrf ? { "x-csrf-token": csrf } : undefined,
+    });
     router.push("/");
     router.refresh();
   }

@@ -20,7 +20,6 @@ export async function lookupLinkByCode(code: string): Promise<CachedLink | null>
   const hit = cache.get(code);
   if (hit && hit.exp > Date.now()) return hit.link as CachedLink | null;
 
-  let link: CachedLink | null = null;
   try {
     const row = await prisma.link.findFirst({
       where: { OR: [{ shortCode: code }, { customAlias: code }] },
@@ -33,13 +32,13 @@ export async function lookupLinkByCode(code: string): Promise<CachedLink | null>
         isActive: true,
       },
     });
-    link = row;
+    if (row) {
+      cache.set(code, { link: row, exp: Date.now() + CACHE_TTL });
+    }
+    return row;
   } catch {
-    link = null;
+    return null;
   }
-
-  cache.set(code, { link, exp: Date.now() + CACHE_TTL });
-  return link;
 }
 
 export function invalidateLinkCache(code: string) {

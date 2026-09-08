@@ -23,12 +23,12 @@ export async function POST(req: Request) {
     requireAdmin(session);
     await assertCsrf(req);
 
-    const body = (await req.json()) as { alias?: string };
-    const alias = (body.alias || "").trim().toLowerCase();
-
-    if (!/^[a-z0-9-_]{3,32}$/.test(alias)) {
+    const { adminAliasSchema } = await import("@/lib/validation");
+    const parsed = adminAliasSchema.safeParse(await req.json());
+    if (!parsed.success) {
       return jsonError("الاسم يجب أن يكون 3-32 حرفًا (أحرف، أرقام، - أو _)", 422);
     }
+    const alias = parsed.data.alias;
 
     const existing = await prisma.reservedAlias.findUnique({ where: { alias } });
     if (existing) return jsonError("الاسم محجوز بالفعل", 409);

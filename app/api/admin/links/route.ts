@@ -14,6 +14,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const search = (url.searchParams.get("search") || "").trim();
     const status = url.searchParams.get("status") || "all"; // all | active | expired | disabled
+    const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 200, 1), 200);
 
     const where: Record<string, unknown> = {};
     if (search) {
@@ -30,7 +31,7 @@ export async function GET(req: Request) {
     const links = await prisma.link.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      take: 200,
+      take: limit,
       select: {
         id: true,
         originalUrl: true,

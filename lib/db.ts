@@ -19,11 +19,19 @@ export function containsFilter(value: string) {
  */
 export async function isCodeTakenCaseInsensitive(code: string): Promise<boolean> {
   const needle = code.toLowerCase();
+  // مسار سريع عبر الـ unique index (الحالة الشائعة)
+  const exact = await prisma.link.findFirst({
+    where: { OR: [{ shortCode: code }, { customAlias: code }] },
+    select: { id: true },
+  });
+  if (exact) return true;
+  // fallback لاختلاف حالة الأحرف فقط، مع حد لمنع المسح الكامل
   const rows = await prisma.link.findMany({
     where: {
       OR: [{ shortCode: containsFilter(needle) }, { customAlias: containsFilter(needle) }],
     },
     select: { shortCode: true, customAlias: true },
+    take: 200,
   });
   return rows.some(
     (r) =>

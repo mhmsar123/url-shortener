@@ -13,13 +13,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     await assertCsrf(req);
 
     const { id } = await params;
-    const body = (await req.json()) as { status?: string };
-
-    const allowed = ["PENDING", "ACCEPTED", "REJECTED"];
-    const status = body.status;
-    if (!status || !allowed.includes(status)) {
+    const { adminReportPatchSchema } = await import("@/lib/validation");
+    const parsed = adminReportPatchSchema.safeParse(await req.json());
+    if (!parsed.success) {
       return jsonError("حالة غير صالحة", 422);
     }
+    const status = parsed.data.status;
 
     const report = await prisma.report.findUnique({ where: { id } });
     if (!report) return jsonError("البلاغ غير موجود", 404);

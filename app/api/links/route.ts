@@ -140,7 +140,7 @@ export async function POST(req: Request) {
       res.cookies.set(ANON_COOKIE, anonId!, {
         path: "/",
         maxAge: 60 * 60 * 24 * 365,
-        httpOnly: false,
+        httpOnly: true,
         sameSite: "lax",
       });
     }
@@ -158,6 +158,7 @@ export async function GET(req: Request) {
 
     const url = new URL(req.url);
     const search = (url.searchParams.get("search") || "").trim();
+    const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 500, 1), 500);
 
     const where: Record<string, unknown> = {
       userId: session.id,
@@ -173,7 +174,7 @@ export async function GET(req: Request) {
     const links = await prisma.link.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      take: 500,
+      take: limit,
       select: {
         id: true,
         originalUrl: true,

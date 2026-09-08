@@ -92,16 +92,19 @@ export default function UrlForm() {
       expiresAt = new Date(Date.now() + ms).toISOString();
     }
 
-    const res = await api<CreateResult>("/api/links", {
-      method: "POST",
-      json: {
-        originalUrl: trimmed,
-        alias: alias.trim().toLowerCase(),
-        expiresAt,
-      },
-    });
-
-    setLoading(false);
+    let res;
+    try {
+      res = await api<CreateResult>("/api/links", {
+        method: "POST",
+        json: {
+          originalUrl: trimmed,
+          alias: alias.trim().toLowerCase(),
+          expiresAt,
+        },
+      });
+    } finally {
+      setLoading(false);
+    }
 
     if (res.ok && res.data) {
       setResult(res.data);

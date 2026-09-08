@@ -5,9 +5,16 @@ import { jwtVerify } from "jose";
 const SESSION_COOKIE = "qs_session";
 const CSRF_COOKIE = "qs_csrf";
 
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "dev-only-secret-change-me"
-);
+function getSecret(): Uint8Array {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("AUTH_SECRET is missing. Set a long random value in production.");
+    }
+    return new TextEncoder().encode("dev-only-secret-change-me");
+  }
+  return new TextEncoder().encode(secret);
+}
 
 type SessionPayload = { id?: string; email?: string; role?: string };
 
@@ -15,7 +22,7 @@ async function getSession(req: NextRequest): Promise<SessionPayload | null> {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as SessionPayload;
   } catch {
     return null;

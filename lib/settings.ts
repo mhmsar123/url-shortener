@@ -18,14 +18,22 @@ export async function getSetting(key: string, fallback: string): Promise<string>
 }
 
 export async function getRateLimitSettings() {
-  const windowSeconds = Number(await getSetting("window_seconds", "60")) || 60;
+  const [windowSecondsRaw, create, lookup, auth, report, global] = await Promise.all([
+    getSetting("window_seconds", "60"),
+    getSetting("rate_limit_create", "10"),
+    getSetting("rate_limit_lookup", "120"),
+    getSetting("rate_limit_auth", "5"),
+    getSetting("rate_limit_report", "5"),
+    getSetting("rate_limit_global", "600"),
+  ]);
+  const windowSeconds = Number(windowSecondsRaw) || 60;
   return {
     windowMs: windowSeconds * 1000,
-    create: Number(await getSetting("rate_limit_create", "10")) || 10,
-    lookup: Number(await getSetting("rate_limit_lookup", "120")) || 120,
-    auth: Number(await getSetting("rate_limit_auth", "5")) || 5,
-    report: Number(await getSetting("rate_limit_report", "5")) || 5,
-    global: Number(await getSetting("rate_limit_global", "600")) || 600,
+    create: Number(create) || 10,
+    lookup: Number(lookup) || 120,
+    auth: Number(auth) || 5,
+    report: Number(report) || 5,
+    global: Number(global) || 600,
   };
 }
 
